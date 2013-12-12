@@ -479,29 +479,24 @@ function sh_load(language, element, prefix, suffix) {
     return;
   }
   sh_requests[language] = [element];
-  var request = sh_getXMLHttpRequest();
+
   var url = prefix + 'sh_' + language + suffix;
-  request.open('GET', url, true);
-  request.onreadystatechange = function () {
-    if (request.readyState === 4) {
-      try {
-        if (! request.status || request.status === 200) {
-          eval(request.responseText);
-          var elements = sh_requests[language];
-          for (var i = 0; i < elements.length; i++) {
-            sh_highlightElement(elements[i], sh_languages[language]);
-          }
-        }
-        else {
-          throw 'HTTP error: status ' + request.status;
-        }
-      }
-      finally {
-        request = null;
-      }
+  var s = document.createElement('script');
+  s.type = 'text/javascript'; s.async = false;
+  s.src = url; 
+
+  var callback = function(){
+    var elements = sh_requests[language];
+    for (var i = 0; i < elements.length; i++) {
+      sh_highlightElement(elements[i], sh_languages[language]);
     }
   };
-  request.send(null);
+  if(s.addEventListener) {
+    s.addEventListener("load",callback,false);
+  } else if(s.readyState) { // For IE
+    s.onreadystatechange = callback;
+  }
+  document.body.appendChild(s);
 }
 
 /**
